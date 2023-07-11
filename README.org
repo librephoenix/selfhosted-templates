@@ -11,3 +11,6 @@ I have 3 templates currently:
 - [[./homelab][homelab]] - These included self-hosted cloud services such as [[https://nextcloud.com/][Nextcloud]], [[https://syncthing.net/][Syncthing]], [[https://about.gitea.com/][Gitea]], [[https://freshrss.org/][FreshRSS]], and a personal dashboard ([[https://heimdall.site/][Heimdall]])
 - [[./network][network]] - These include network goodies such as [[https://pi-hole.net/][Pi-hole]] (network-level adblock) and [[https://www.wireguard.com/][Wiregaurd]] (to VPN into my home network)
 - [[./gameservers][gameservers]] - What it sounds like, self-hosted servers for games like [[https://www.minecraft.net/en-us][Minecraft]], [[https://terraria.org/][Terraria]], etc...
+
+** Setup
+See [[./setup.org][setup.org]] for more information.

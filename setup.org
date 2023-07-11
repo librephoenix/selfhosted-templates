@@ -1,0 +1,100 @@
+#+title: Setup
+#+author: Emmet
+
+These are basic instructions for how I have set up my homelab.
+
+** Installation
+I use NixOS btw, so I have a NixOS setup for servers. All I need are my dotfiles ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https://github.com/librephoenix/nixos-config][GitHub]]) with =profile= set to "homelab" inside my =flake.nix=. What this essentially does is:
+- Activate a firewall that doesn't let anything through by default (except SSH)
+- Activates ssh with my public ssh key authorized
+  - Disallows root login via ssh
+  - Disallows password-based login via ssh
+- Replaces =sudo= with =doas=, since sudo is overkill for a system managed by one person
+- Installs necessary packages for server management:
+  - =docker=, along with docker utilities =docker-compose= and =lazydocker=
+  - =gocryptfs= for easy at-rest encryption of all important data
+  - =rdiff-backup= for quick reverse-incremental backups
+  - =rclone= for connecting to cloud storage for off-site backups
+
+Again, since I use NixOS, my configuration does all of this for me, since I told it to. All of these can be done on other Linux distros (i.e. Ubuntu, Debian, Arch), but require you to remember a set of steps. A quick look through the [[https://wiki.archlinux.org/][Arch wiki]] should tell you how to set any of these up yourself on a different system if you would like.
+
+** At-rest Encryption
+Most of the time, when you encrypt a Linux desktop or laptop, you use =block encryption=, which encrypts /literally everything/ (except the bootloader). What this means is, if the computer shuts down unexpectedly, when turning it back on, you must either:
+- Input the keyphrase manually
+- Store a keyfile on the disk to decrypt it
+
+In the first case, you /can/ set it up to allow you to input the keyphrase remotely, but that's a bit annoying to setup, which means you can only input the keyphrase when you have physical access to the server.
+
+In the second case, any moderately skilled hacker who steals your hard drive can decrypt the entire thing, which means the encryption isn't doing its job.
+
+In any case, while more secure, this block encryption is inconvenient for homelab usage.
+
+*** Stacked Filesystem Encryption
+The other solution is =stacked filesystem encryption=, in which you encrypt only a single directory (we'll call it =crypt=), and then virtually mount it for usage inside a decrypted directory (I usually call this directory =plain=).
+
+Benefits to this for are:
+- You can decrypt it remotely a lot easier (as long as the server is physically on), since you will still always have access to ssh in the case of an interruption
+- It's /really/ easy to backup everything to the cloud /encrypted/, since all you need to do is sync the =crypt= folder instead of the =plain= folder
+
+With respect to block-level encryption:
+- It may be easier for an attacker with physical access to tamper with your system-level files to install a rootkit or other nasty hack, since those files remain unencrypted on the system
+- With most stacked encryption solutions, attackers can still see the directory structure and relative file sizes of encrypted files, which can allow them to guess what kind of files you have (even if the file names and contents are encrypted)
+
+For my use I'm going with =stacked filesystem encryption= using a package called [[https://nuetzlich.net/gocryptfs/][gocryptfs]]
+
+*** Gocryptfs Setup
+First create two directories: =crypt= and =plain=. =crypt= is the encrypted directory, while =plain= is where it will be mounted in the clear.
+#+BEGIN_SRC sh :noexec
+mkdir crypt plain
+#+END_SRC
+
+Then, you must initialize the encrypted directory, providing it with a passphrase:
+#+BEGIN_SRC sh :noexec
+gocryptfs -init crypt
+#+END_SRC
+
+It will give you a master key, which gives you /complete access to the encrypted directory/. As they explain, save it in a secure place and /only use it in emergencies/!
+
+Finally, to mount it, you merely run:
+#+BEGIN_SRC sh :noexec
+gocryptfs crypt plain
+#+END_SRC
+The only problem with this setup, is that /only the user that called the command can view the unencrypted contents/. If you call this as your normal user /not even root can see inside the decrypted mount/. This is a feature, not a bug. However, since many docker containers rely on multiple users, this means that running most docker containers inside a gocryptfs mount won't work by default. Fortunately, we can allow other users into the mount with the =-allow_others= flag:
+#+BEGIN_SRC sh :noexec
+gocryptfs -allow_others crypt plain
+#+END_SRC
+which allows normal filesystem access inside the gocryptfs mount based on *nix permissions.
+
+** Container Setup
+With gocryptfs setup and mounted, the =docker-compose= examples from this repo can be copied into the =plain= directory and setup. Most examples require you to change defaults, such as database passwords, domain name(s), email, time zones, etc.. More info can be found in each subdirectory (i.e. [[./homelab][homelab]], [[./network][network]], [[./gameservers][gameservers]], etc...)
+
+Once such defaults are properly configured, you can =cd= into each directory and run:
+#+BEGIN_SRC sh :noexec
+sudo docker-compose up -d
+#+END_SRC
+to start the containers.
+
+** Backup Setup
+If data does not exist in at least 3 physical drives, and at least 2 geographically separated locations, it does not exist. It is a good idea to set up:
+- A local backup on a separate SSD or flash drive
+  - This protects against your main hard drive failing
+- A remote backup in the cloud (or someone else's computer)
+  - This protects you against a home disaster such as fire, flooding, theft
+
+*** Local Backup
+A local backup is quickly and easily achieved with a tool like =rsync=, which incrementally transfers data (only transfers changes). This means that the first backup might take a few hours or days, but subsequent backups can take a mere seconds or minutes. For file versioning, you can go a step further and use something like =rdiff-backup=, which creates backup versions, but leverages =rsync= in the background for performance.
+
+For privacy and security, backups should be encrypted. For this, you can either backup the encrypted =crypt= directory to a flash drive or SSD, or backup the decrypted =plain= directory to an SSD or flash drive with =block encryption=. The =block encryption= method has the added benefit of masking file directory structures and relative file sizes.
+
+*** Remote Backup
+An ideal remote backup would involve directly controlling the remote computer via SFTP and backing up with rdiff-backup. However, most cloud storage solutions don't allow you to do this. As a viable alternative, remote backups can easily be achieved with =rclone=.
+
+To setup rclone for a particular cloud provider run
+#+BEGIN_SRC sh :noexec
+sudo rclone config
+#+END_SRC
+
+Then, to backup the encrypted gocryptfs storage:
+#+BEGIN_SRC sh :noexec
+sudo rclone sync --exclude=gocryptfs.conf crypt yourbackup:/backup
+#+END_SRC
