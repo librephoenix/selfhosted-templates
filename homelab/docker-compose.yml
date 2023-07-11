@@ -1,0 +1,184 @@
+version: '3.8'
+
+services:
+  nextcloud-db:
+    image: mariadb:10.5
+    container_name: nextcloud-db
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: unless-stopped
+    volumes:
+      - ./data/nextcloud-db:/var/lib/mysql
+    environment:
+      - MARIADB_AUTO_UPGRADE=1
+      - MARIADB_DISABLE_UPGRADE_BACKUP=1
+    env_file:
+      - ./env/nextcloud-db.env
+
+  nextcloud-redis:
+    image: redis:alpine
+    container_name: nextcloud-redis
+    restart: unless-stopped
+
+  nextcloud-app:
+    build: ./builds/nextcloud-app/
+    container_name: nextcloud-app
+    restart: unless-stopped
+    volumes:
+      - ./data/nextcloud-app:/var/www/html
+    environment:
+      - VIRTUAL_HOST=nextcloud.yourdomain.com
+      - LETSENCRYPT_HOST=nextcloud.yourdomain.com
+      - LETSENCRYPT_EMAIL=youremail@domain.com
+      - MYSQL_HOST=nextcloud-db
+      - REDIS_HOST=nextcloud-redis
+    env_file:
+      - ./env/nextcloud-db.env
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+    networks:
+      - proxy-tier
+      - default
+
+  nextcloud-cron:
+    image: nextcloud:apache
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    volumes:
+      - ./data/nextcloud-app:/var/www/html
+    entrypoint: /cron.sh
+    depends_on:
+      - nextcloud-db
+      - nextcloud-redis
+
+  gitea-app:
+    image: gitea/gitea:nightly
+    container_name: gitea-app
+    environment:
+      - VIRTUAL_HOST=gitea.yourdomain.com
+      - LETSENCRYPT_HOST=gitea.yourdomain.com
+      - LETSENCRYPT_EMAIL=youremail@domain.com
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=mysql
+      - GITEA__database__HOST=gitea-db:3306
+      - SSH_PORT=2321
+    env_file:
+      - ./env/gitea-db.env
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+    volumes:
+      - ./data/gitea-app:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+      - "2321:22"
+    depends_on:
+      - gitea-db
+
+  gitea-db:
+    image: mariadb:10.5
+    container_name: gitea-db
+    restart: unless-stopped
+    env_file:
+      - ./env/gitea-db.env
+    networks:
+      - proxy-tier
+    volumes:
+      - ./data/gitea-db:/var/lib/mysql
+
+  syncthing-app:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing-app
+    hostname: yourhostname
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=YourRegion/YourCity
+    networks:
+      - proxy-tier
+    volumes:
+      - ./data/syncthing-app/config:/config
+      - ./data/syncthing-app/data:/source
+    ports:
+      - 8384:8384
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    restart: unless-stopped
+
+  freshrss:
+    image: lscr.io/linuxserver/freshrss:latest
+    container_name: freshrss-app
+    environment:
+      - VIRTUAL_HOST=freshrss.yourdomain.com
+      - LETSENCRYPT_HOST=freshrss.yourdomain.com
+      - LETSENCRYPT_EMAIL=youremail@domain.com
+      - PUID=1000
+      - PGID=1000
+      - TZ=YourRegion/YourCity
+    networks:
+      - proxy-tier
+    volumes:
+      - ./data/freshrss-app/config:/config
+    restart: unless-stopped
+
+  heimdall-app:
+    image: lscr.io/linuxserver/heimdall:latest
+    container_name: heimdall-app
+    environment:
+      - VIRTUAL_HOST=homepage.yourdomain.com
+      - LETSENCRYPT_HOST=homepage.yourdomain.com
+      - LETSENCRYPT_EMAIL=youremail@domain.com
+      - PUID=1000
+      - PGID=1000
+      - TZ=YourRegion/YourCity
+    volumes:
+      - ./data/heimdall-app/config:/config
+    networks:
+      - proxy-tier
+    restart: unless-stopped
+
+  nginx-proxy:
+    build: ./builds/nginx-proxy/
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - proxy-tier
+
+  letsencrypt-companion:
+    image: nginxproxy/acme-companion
+    container_name: letsencrypt-companion
+    restart: unless-stopped
+    volumes:
+      - certs:/etc/nginx/certs
+      - acme:/etc/acme.sh
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy-tier
+    depends_on:
+      - nginx-proxy
+
+volumes:
+  certs:
+  acme:
+  vhost.d:
+  html:
+
+networks:
+  proxy-tier:
+    external: true

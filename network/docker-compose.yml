@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  wireguard-vpn:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wireguard-vpn
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=YourRegion/YourCity
+      - SERVERURL=yourdomain.com
+      - SERVERPORT=51820
+      - PEERS=1 #optional
+      - PEERDNS=auto #optional
+#      - INTERNAL_SUBNET=10.13.13.0 #optional
+#      - ALLOWEDIPS=0.0.0.0/0 #optional
+#      - PERSISTENTKEEPALIVE_PEERS= #optional
+#      - LOG_CONFS=true #optional
+    networks:
+      - proxy-tier
+    volumes:
+      - ./data/wireguard-vpn/config:/config
+#      - /lib/modules:/lib/modules #optional
+    ports:
+      - 51820:51820/udp
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+
+  pihole-adblock:
+    container_name: pihole-adblock
+    image: pihole/pihole:latest
+    # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
+    networks:
+      - proxy-tier
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+#      - "67:67/udp" # Only required if you are using Pi-hole as your DHCP server
+      - "8093:80/tcp"
+      - "8094:443/tcp"
+    environment:
+      TZ: 'YourRegion/YourCity'
+      WEBPASSWORD: CHANGEME
+    volumes:
+      - './data/pihole-adblock/etc/pihole:/etc/pihole'
+      - './data/pihole-adblock/etc/dnsmasq.d:/etc/dnsmasq.d'
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+#    cap_add:
+#      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped
+
+networks:
+  proxy-tier:
+    external: true
