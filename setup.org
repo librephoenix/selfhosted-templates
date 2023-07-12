@@ -1,7 +1,15 @@
-#+title: Setup
+#+title: Server Setup
 #+author: Emmet
 
-These are basic instructions for how I have set up my homelab.
+These are basic instructions for how I have configured the OS and auxiliary packages for my home server. This sets up:
+- Sane security defaults
+- At-rest encryption for all important data
+- Remote and local backups
+
+For information on how to setup the various Docker containers for services, visit each of the subdirectories here:
+- [[./homelab][homelab]]
+- [[./network][network]]
+- [[./gameservers][gameservers]]
 
 ** Installation
 I use NixOS btw, so I have a NixOS setup for servers. All I need are my dotfiles ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https://github.com/librephoenix/nixos-config][GitHub]]) with =profile= set to "homelab" inside my =flake.nix=. What this essentially does is:
@@ -78,6 +86,7 @@ to start the containers.
 If data does not exist in at least 3 physical drives, and at least 2 geographically separated locations, it does not exist. It is a good idea to set up:
 - A local backup on a separate SSD or flash drive
   - This protects against your main hard drive failing
+  - Additionally, if it is disconnected, this protects against ransomware and/or other hacks where access to data is compromised by an attacker
 - A remote backup in the cloud (or someone else's computer)
   - This protects you against a home disaster such as fire, flooding, theft
 
