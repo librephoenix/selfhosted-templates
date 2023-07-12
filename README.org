@@ -14,3 +14,9 @@ I have 3 templates currently:
 
 ** Server Setup
 For details on how I prepare my Linux servers, see [[./setup.org][setup.org]].
+
+** Docker-compose (Services) Setup
+For details on how I configure docker-compose for my various self-hosted services, visit the respective directory:
+- [[./homelab][homelab]]
+- [[./network][network]]
+- [[./gameservers][gameservers]]
