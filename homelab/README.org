@@ -21,34 +21,7 @@ Access to these services is mediated with HTTPS via Nginx Proxy and the Let's En
 - =LETSENCRYPT_EMAIL= - email to be used in Let's Encrypt SSL request; *this is kept on record by Let's Encrypt*
 
 ** Setup
-*** Domain Name
-In order for this to work, you're going to need a domain name. Do a search for the best domain name registrars and pick one. Then search up domain names you would like until you find something available. Then, as long as you aren't trying to get something fancy like .gg or .ai, the yearly payments shouldn't be too bad.
+For details on how to turn this into a working production environment, see [[./setup.org][setup.org]].
 
-Once you have purchased it, you'll need to create an A record for that domain pointing to your IP address (i.e. the IP from your VPS, or the public IP of your home). Then, you'll need CNAME records for each subservices to point to the domain name you chose. Here is an example:
-
-Domain: example.com
-| Type         | Host      | Value         |
-|--------------+-----------+---------------|
-| A Record     | @         | 142.251.32.46 |
-| CNAME Record | nextcloud | example.com   |
-| CNAME Record | gitea     | example.com   |
-| CNAME Record | freshrss  | example.com   |
-| CNAME Record | homepage  | example.com   |
-
-The following setup would:
-- Redirect example.com to 142.251.32.46
-- Redirect nextcloud.example.com (a subdomain of example.com) to whatever example.com is redirected to (142.251.32.46)
-- Redirect gitea.example.com (another subdomain of example.com) to whatever example.com is redirected to (142.251.32.46)
-- etc...
-
-As you can see, every single subdomain points to the exact same IP address. However, Nginx Proxy will decide what to show you based on what subdomain you're connecting to. In this sense, you can /only/ connect to the services by supplying the correct subdomain (you can't necessarily connect to your Nextcloud instance via a local IP, like 192.168.1.43).
-
-*** TODO Port Forwarding and Firewall Rules
-You only need to care about port forwarding if you are setting this up on your home network.
-
-*** Configuration
-In the [[./docker-compose.yml][docker-compose.yml]] file, configure the following:
-- MOST IMPORTANT: CHANGE ALL THE PASSWORDS IN ALL THE ENVIRONMENT FILES (found in the [[./env][env]] directory)
-  - THEY ALL SAY CHANGEME SO THERE IS NO EXCUSE FOR MISSING THIS
-- Set the =VIRTUAL_HOST=, =LETSENCRYPT_HOST= and =LETSENCRYPT_EMAIL= for each service accordingly
-- Set the time zone (=TZ=) for the containers that request it
+** Maintenance
+For more details on maintaining this environment, see [[./maintenance.org][maintenance.org]].
