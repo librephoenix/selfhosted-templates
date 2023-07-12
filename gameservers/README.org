@@ -1,0 +1,8 @@
+#+title: Gameservers Docker Compose
+#+author: Emmet
+
+** Setup
+For details on how to turn this into working game servers, see [[./setup.org][setup.org]].
+
+** Maintenance
+For more details on maintaining these game servers, see [[./maintenance.org][maintenance.org]].
