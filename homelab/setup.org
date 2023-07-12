@@ -25,8 +25,47 @@ The following setup would:
 
 As you can see, every single subdomain points to the exact same IP address. However, Nginx Proxy will decide what to show you based on what subdomain you're connecting to. In this sense, you can /only/ connect to the services by supplying the correct subdomain (you can't necessarily connect to your Nextcloud instance via a local IP, like 192.168.1.43).
 
-** TODO Port Forwarding and Firewall Rules
-You only need to care about port forwarding if you are setting this up on your home network.
+** Port Forwarding
+You only need to care about port forwarding if you are setting this up on your home network. Port forwarding redirects traffic on any ports you specify from your public IP address to an internal IP address on your network. On your server, run the following command to get your internal IP address.
+#+BEGIN_SRC sh :noexec
+ip a
+#+END_SRC
+
+Next, in your router settings, you'll want to first configure the server to have a /static IP address/. Then, you can port forward outside connections to the IP address of your server.
+
+For this setup, Nginx Proxy requires ports 443 and 80 (443 is for HTTPS while 80 is for HTTP). So to successfully port forward, you'll need 2 rules:
+- External Port 443 -> [Server Local IP Address (i.e. 192.168.1.43)] Port 443
+- External Port 80 -> [Server Local IP Address (i.e. 192.168.1.43)] Port 80
+
+As a bonus, in this example, Gitea is configured to use SSH on port 2321, so you can port forward that as well:
+- External Port 2321 -> [Server Local IP Address (i.e. 192.168.1.43)] Port 2321
+
+Remember to keep in mind, /anything you port forward in this manner will be publicly accessible to the internet. If anything that doesn't require authentication is port forwarded, anyone can go and mess with it./
+
+** Firewall Rules
+In order to make sure everything works, the server's firewall must be configured to allow access to the ports we need. If you're setting this up on a home network, you may need to make these same configuration changes on your router's firewall as well (many modern routers will automatically update the firewalls once you've set up port forwarding though).
+
+This part isn't too bad; simply allow incoming access on the ports we mentioned earlier:
+- Allow Incoming Port 443
+- Allow Incoming Port 80
+- Allow Incoming Port 2321
+
+In my config ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https://github.com/librephoenix/nixos-config][GitHub]]), all that needs to be set are the rules inside of firewall.nix:
+#+BEGIN_SRC nix
+{ config, pkgs, ... }:
+
+{
+  # Firewall
+  networking.firewall.enable = true;
+  # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 443 80 2321 ];
+  networking.firewall.allowedUDPPorts = [ 443 80 ];
+}
+#+END_SRC
+
+If you use something like Ubuntu or Debian, then you probably have [[https://wiki.ubuntu.com/UncomplicatedFirewall][UFW (Uncomplicated Firewall)]] installed. Look at its documentation to find out how to allow access to the necessary ports.
+
+If you're setting this up on your home network and it doesn't work after you've done all this, check your router settings, since you may have to apply the exact same firewall rules to your router as well.
 
 ** Configuration
 In the [[./docker-compose.yml][docker-compose.yml]] file, configure the following:
