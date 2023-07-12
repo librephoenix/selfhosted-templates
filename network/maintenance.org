@@ -1,2 +1,20 @@
 #+title: Network Customization Maintenance
 #+author: Emmet
+
+Maintenance of the Pi-hole and Wireguard services is pretty simple.
+
+** Backup
+Unless you extensively configure them, they don't take that long to setup and don't require much persistent storage, so you'd probably be ok not backing up the data folders associated with them.
+
+** Updates
+Regular updates are very important, especially for Wireguard. Updates can be applied by stopping the containers, pulling new images and starting the containers up again:
+#+BEGIN_SRC sh :noexec
+sudo docker-compose stop
+sudo docker-compose pull
+sudo docker-compose up -d
+#+BEGIN_SRC
+
+Old Docker images from previous updates can be pruned after verifying the updated containers are working as expected:
+#+BEGIN_SRC sh :noexec
+sudo docker image prune
+#+END_SRC
