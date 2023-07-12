@@ -1,0 +1,17 @@
+#+title: Network Docker Compose
+#+author: Emmet
+
+This directory contains:
+- [[./docker-compose.yml][docker-compose.yml]] - This stores information about what containers are needed, how those containers are connected, and where data should be stored
+- data - Once all of the docker containers referenced in the compose file are started, persistent storage is created here
+
+** Service Overview
+Within the [[./docker-compose.yml][docker-compose file]], just two services are started:
+- [[https://www.wireguard.com/][Wiregaurd]] - So I can VPN into my house if necessary
+- [[https://pi-hole.net/][Pi-hole]] - Network-level adblock and custom DNS!
+
+** Setup
+For details on how to turn this into a working production environment, see [[./setup.org][setup.org]].
+
+** Maintenance
+For more details on maintaining this environment, see [[./maintenance.org][maintenance.org]].
