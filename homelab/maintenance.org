@@ -1,2 +1,43 @@
 #+title: Homelab Maintenance
 #+author: Emmet
+
+** Backup
+Since all important (persistent) data will be stored inside this directory (uploaded files are in the data directory), backing up that data to multiple locations is very important.
+
+To be more specific, the rule goes something like: "If data does not exist in at least 3 physical drives, and at least 2 geographically separated locations, then it does not exist." It is a good idea to set up:
+- A local backup on a separate SSD or flash drive
+  - This protects against your main hard drive failing
+  - Additionally, if it is disconnected, this protects against ransomware and/or other hacks where access to data is compromised by an attacker
+- A remote backup in the cloud (or someone else's computer)
+  - This protects you against a home disaster such as fire, flooding, theft
+
+*** Local Backup
+A local backup is quickly and easily achieved with a tool like =rsync=, which incrementally transfers data (only transfers changes). This means that the first backup might take a few hours or days, but subsequent backups can take a mere seconds or minutes. For file versioning, you can go a step further and use something like =rdiff-backup=, which creates backup versions, but leverages =rsync= in the background for performance.
+
+For privacy and security, backups should be encrypted. For this, you can either backup the encrypted =crypt= directory to a flash drive or SSD, or backup the decrypted =plain= directory to an SSD or flash drive with =block encryption=. The =block encryption= method has the added benefit of masking file directory structures and relative file sizes.
+
+*** Remote Backup
+An ideal remote backup would involve directly controlling the remote computer via SFTP and backing up with rdiff-backup. However, most cloud storage solutions don't allow you to do this. As a viable alternative, remote backups can easily be achieved with =rclone=.
+
+To setup rclone for a particular cloud provider run
+#+BEGIN_SRC sh :noexec
+sudo rclone config
+#+END_SRC
+
+Then, to backup the encrypted gocryptfs storage:
+#+BEGIN_SRC sh :noexec
+sudo rclone sync --exclude=gocryptfs.conf crypt yourbackup:/backup
+#+END_SRC
+
+** Updates
+Regular updates are very important, especially for publicly accessible apps. Updates can be applied by stopping the containers, pulling new images and starting the containers up again:
+#+BEGIN_SRC sh :noexec
+sudo docker-compose stop
+sudo docker-compose pull
+sudo docker-compose up -d
+#+BEGIN_SRC
+
+Old Docker images from previous updates can be pruned after verifying the updated containers are working as expected:
+#+BEGIN_SRC sh :noexec
+sudo docker image prune
+#+END_SRC
