@@ -18,3 +18,6 @@ Old Docker images from previous updates can be pruned after verifying the update
 #+BEGIN_SRC sh :noexec
 sudo docker image prune
 #+END_SRC
+
+*** Pi-hole Blocklist Updates
+Blocklists may not be automatically updated. To update your blocklists, navigate to http://yourlocalip:8093/admin/gravity.php and click "Update"
