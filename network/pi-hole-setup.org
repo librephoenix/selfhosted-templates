@@ -1,2 +1,53 @@
 #+title: Pi-hole Setup
 #+author: Emmet
+
+This walks you through setup of Pi-hole on your home network, which can block ads (or any domain for that matter) /and/ act as a local DNS server you can control.
+
+** Firewall Rules
+In order to make sure everything works, the both the server's firewall and your router's firewall must be configured to allow access to the ports we need. Port 8093 will be the Web GUI for administration, and port 53 since that is the standard port for DNS servers.
+
+- Allow Incoming Port 8093
+- Allow Incoming Port 53
+
+In my config ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https://github.com/librephoenix/nixos-config][GitHub]]), all that needs to be set are the rules inside of firewall.nix:
+#+BEGIN_SRC nix
+{ config, pkgs, ... }:
+
+{
+  # Firewall
+  networking.firewall.enable = true;
+  # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 53 8093 ];
+  networking.firewall.allowedUDPPorts = [ 53 8093 ];
+}
+#+END_SRC
+
+** Configuration
+This is pretty quick. In the [[./docker-compose.yml][docker-compose.yml]] file, simply change the default admin password for the Pi-hole (marked CHANGEME, you can't miss it).
+
+** Start Container(s)
+Once everything is properly configured and you've double-checked it, you can start all the necessary containers by running:
+#+BEGIN_SRC sh :noexec
+# inside of homelab directory
+sudo docker-compose up -d
+#+END_SRC
+
+** Web Gui Check
+There isn't much to setup out of the box, but to check that everything is working properly, navigate to the web portal using the local IP of the server on port 8093 (if server IP is 192.168.1.43, then navigate to http://192.168.1.43:8093). This /should/ pop up with a "403 Forbidden" error, because it doesn't automatically redirect to the admin portal, but this is a quick fix. Simply navigate to the admin page (i.e. http://192.168.1.43:8093/admin/login.php).
+
+Once logged in, you can configure any settings as you would like, and should see some statistics.
+
+** Router Configuration
+Before this step, Pi-hole can't do anything to block ads on your devices. In order for it to work, it needs to be the DNS server of your device. To make this apply to the whole network, you must simply set it as the DNS server on your router.
+
+Find the DNS server settings in your router's configuration, and set the DNS server to "Manual" specifying the IP address of your server (i.e 192.168.1.43) as your DNS server. This should redirect all DNS queries to the Pi-hole on port 53, which will block garbage and only show you the stuff you need.
+
+Once saving the configuration, test it by going to a couple websites. If you messed up the configuration at all, you may not be able to access /any/ websites (this happens if you can't reach the DNS server). If it's configured correctly, however, you should see less ads and you can now check how many requests have been blocked in the Pi-hole web portal at http://yourlocalip:8093/admin/login.php
+
+** Broken Websites
+Pi-hole's default configuration will cause some websites to break. Particularly tracking links (from places like Google search) are blocked, which will break links you try to follow after a Google search. [[https://github.com/ClearURLs/Addon][ClearURLs]] browser extension is an easy fix to this.
+
+** Extra Blocking
+Pi-hole includes only one blocklist by default: https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts which does a good job of blocking ads and malware. However, more blocklists are available at his main repo here: https://github.com/StevenBlack/hosts.
+
+These can be added to Pi-hole here: http://yourlocalip:8093/admin/groups-adlists.php, and downloaded/updated at the "gravity" page: http://yourlocalip:8093/admin/gravity.php.
