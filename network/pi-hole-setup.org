@@ -23,7 +23,7 @@ In my config ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https:
 #+END_SRC
 
 ** Configuration
-This is pretty quick. In the [[./docker-compose.yml][docker-compose.yml]] file, simply change the default admin password for the Pi-hole (marked CHANGEME, you can't miss it).
+This is pretty quick. In the [[./docker-compose.yml][docker-compose.yml]] file, simply change the default admin password for the Pi-hole (the =WEBPASSWORD= environment variable defaulted to CHANGEME, you can't miss it) and set the =TZ= variable to your time zone.
 
 ** Start Container(s)
 Once everything is properly configured and you've double-checked it, you can start all the necessary containers by running:
