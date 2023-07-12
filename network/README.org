@@ -10,8 +10,11 @@ Within the [[./docker-compose.yml][docker-compose file]], just two services are 
 - [[https://www.wireguard.com/][Wiregaurd]] - So I can VPN into my house if necessary
 - [[https://pi-hole.net/][Pi-hole]] - Network-level adblock and custom DNS!
 
-** Setup
-For details on how to turn this into a working production environment, see [[./setup.org][setup.org]].
+** Pi-hole Setup
+[[https://pi-hole.net/][Pi-hole]] is a network-level adblock and custom DNS server for your network! The adblocking capabilities can save you a lot of bandwidth, and it can even be configured to allow safe browsing for your kids (block gambling, chat, social and porn sites). For details on how to turn this into a working production environment, see [[./pi-hole-setup.org][pi-hole-setup.org]].
+
+** Wireguard Setup
+- [[https://www.wireguard.com/][Wiregaurd]] is a modern, lightweight and secure VPN protocol. If setting this up on a home network, you can use this to VPN into your home network to control local devices while away. For details on how to set this up, see [[./wireguard-setup.org][wireguard-setup.org]].
 
 ** Maintenance
 For more details on maintaining this environment, see [[./maintenance.org][maintenance.org]].
