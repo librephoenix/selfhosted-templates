@@ -1,2 +1,33 @@
 #+title: Wireguard Setup
 #+author: Emmet
+
+** Firewall Rules
+In order to make sure everything works, the both the server's firewall and your router's firewall must be configured to allow access to the ports we need. Port 52180 is the only port needed for Wireguard.
+
+- Allow Incoming Port 51820
+
+In my config ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https://github.com/librephoenix/nixos-config][GitHub]]), all that needs to be set are the rules inside of firewall.nix:
+#+BEGIN_SRC nix
+{ config, pkgs, ... }:
+
+{
+  # Firewall
+  networking.firewall.enable = true;
+  # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 51820 ];
+  networking.firewall.allowedUDPPorts = [ 51820 ];
+}
+#+END_SRC
+
+** Configuration
+Set the =PEERS= environment variable to the amount of peers you want to to be able to connect to the Wireguard server. Set the =TZ= environment variable to your timezone and the =SERVERURL= to a domain name or public IP pointing to the server.
+
+** Start Container(s)
+Once everything is properly configured and you've double-checked it, you can start all the necessary containers by running:
+#+BEGIN_SRC sh :noexec
+# inside of homelab directory
+sudo docker-compose up -d
+#+END_SRC
+
+** Copy Config to Clients (Peers)
+In Wireguard, the clients are called "peers." Once the Wireguard container has been started, it will automatically create as many peer (client) configurations as you specified in the =PEERS= variable. These configurations with be in =data/wireguard-vpn/config/peer[n]=. Simply copy these configurations to client devices and import the configurations into the Wireguard client on your device.
