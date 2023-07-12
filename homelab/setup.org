@@ -37,8 +37,11 @@ For this setup, Nginx Proxy requires ports 443 and 80 (443 is for HTTPS while 80
 - External Port 443 -> [Server Local IP Address (i.e. 192.168.1.43)] Port 443
 - External Port 80 -> [Server Local IP Address (i.e. 192.168.1.43)] Port 80
 
-As a bonus, in this example, Gitea is configured to use SSH on port 2321, so you can port forward that as well:
+Additionally, in this example, Gitea is configured to use SSH on port 2321, so you can port forward that as well:
 - External Port 2321 -> [Server Local IP Address (i.e. 192.168.1.43)] Port 2321
+
+Optionally, for better Syncthing performance, you can configure Syncthing to sync files directly on Port 22000, which would need to be port forwarded for Syncthing to run that way outside of the local network:
+- External Port 22000 -> [Server Local IP Address (i.e. 192.168.1.43)] Port 22000
 
 Remember to keep in mind, /anything you port forward in this manner will be publicly accessible to the internet. If anything that doesn't require authentication is port forwarded, anyone can go and mess with it./
 
@@ -49,6 +52,9 @@ This part isn't too bad; simply allow incoming access on the ports we mentioned 
 - Allow Incoming Port 443
 - Allow Incoming Port 80
 - Allow Incoming Port 2321
+- Allow Incoming Port 22000
+
+Additionally, you'll need to allow incoming access to port 8384 to control the Syncthing instance on the server.
 
 In my config ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https://github.com/librephoenix/nixos-config][GitHub]]), all that needs to be set are the rules inside of firewall.nix:
 #+BEGIN_SRC nix
@@ -58,8 +64,8 @@ In my config ([[https://gitlab.com/librephoenix/nixos-config][GitLab]], [[https:
   # Firewall
   networking.firewall.enable = true;
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 443 80 2321 ];
-  networking.firewall.allowedUDPPorts = [ 443 80 ];
+  networking.firewall.allowedTCPPorts = [ 443 80 2321 8384 22000 ];
+  networking.firewall.allowedUDPPorts = [ 443 80 8384 22000 ];
 }
 #+END_SRC
 
@@ -82,7 +88,7 @@ sudo docker-compose up -d
 #+END_SRC
 
 ** Administration Setup
-Now, immediately navigate to each public-facing service (Nextcloud, Gitea, FreshRSS, Heimdall). If everything went correctly, you should be greeted with an installation page to complete. This is where you will configure an admin account for the website, so make sure to do it fast before some script kiddy compromises your server!
+Now, immediately navigate to each public-facing service (Nextcloud, Gitea, FreshRSS, Heimdall). If everything went correctly, you should be greeted with an installation page to complete. This is where you will configure an admin account for the website, so make sure to do it fast before some script kiddy compromises your server! Gitea is a slight exception, as it (more safely) decides to start the setup page on port 3000 which you can access locally (if your local IP is 192.168.1.43, then you can access it on a browser at 192.168.1.43:3000).
 
 ** Maintenance
 For more details on maintaining this environment, see [[./maintenance.org][maintenance.org]].
