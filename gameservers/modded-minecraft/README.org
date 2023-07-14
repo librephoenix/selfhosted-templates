@@ -1,2 +1,22 @@
 #+title: Modded Minecraft Server with Docker Compose
 #+author: Emmet
+
+This directory contains:
+- [[./docker-compose.yml][docker-compose.yml]] - This stores information about the Minecraft server container that is needed, and where server data should be stored
+- data - This stores the Minecraft server data and is generated when first starting the server
+  - data/mods - This is where mods should be placed (if you're using [[https://files.minecraftforge.net/net/minecraftforge/forge/][Forge]] or [[https://fabricmc.net/][Fabric]], which seem to be two most popular). Certain mods (especially custom biome mods) /must/ be here /before/ the containers are first started and the world is generated. Adding these mods later can mess with the world generation if the world was generated without them.
+
+** Service Overview
+Within the [[./docker-compose.yml][docker-compose file]], some basic configuration of the Minecraft server can be instanced, namely:
+- Minecraft Version
+- Minecraft Modloader Type (i.e. [[https://files.minecraftforge.net/net/minecraftforge/forge/][Forge]], [[https://fabricmc.net/][Fabric]], etc... full list of available types are listed [[https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms/][here]])
+- Minecraft Server Port (if you want something different than the default 25565)
+- Memory Limit (RAM Usage) for the Minecraft Server
+
+Other server configuration can be edited directly in the data directory later.
+
+** Setup
+For details on how to turn this into a working gameserver, see [[./setup.org][setup.org]].
+
+** Maintenance
+For more details on maintaining this gameserver, see [[./maintenance.org][maintenance.org]].
