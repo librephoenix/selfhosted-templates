@@ -7,8 +7,8 @@ services:
     stdin_open: true
     tty: true
     environment:
-      - world=YourWorldName # use this if you already have a world save in the config directory
-      # comment out the above two lines if you don't have a world and need to generate one
+      - world=YourWorldName # set this to your world's filename (without extension) if you already have a world save in the config directory
+      # comment out the above two lines on first start if you don't have a world and need to generate one
     networks:
       - proxy-tier
     volumes:
