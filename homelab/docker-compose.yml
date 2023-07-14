@@ -13,11 +13,15 @@ services:
       - MARIADB_DISABLE_UPGRADE_BACKUP=1
     env_file:
       - ./env/nextcloud-db.env
+    networks:
+      - proxy-tier
 
   nextcloud-redis:
     image: redis:alpine
     container_name: nextcloud-redis
     restart: unless-stopped
+    networks:
+      - proxy-tier
 
   nextcloud-app:
     build: ./builds/nextcloud-app/
@@ -38,7 +42,6 @@ services:
       - nextcloud-redis
     networks:
       - proxy-tier
-      - default
 
   nextcloud-cron:
     image: nextcloud:apache

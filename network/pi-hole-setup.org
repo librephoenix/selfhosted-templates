@@ -3,6 +3,12 @@
 
 This walks you through setup of Pi-hole on your home network, which can block ads (or any domain for that matter) /and/ act as a local DNS server you can control.
 
+** Docker Networking
+By default, only docker-compose containers within the same file are able to talk to each other. This can be bypassed by creating an "external" network. In this sample, the external network is called "proxy-tier" and must be created manually with the command:
+#+BEGIN_SRC sh :noexec
+sudo docker network create proxy-tier
+#+END_SRC
+
 ** Firewall Rules
 In order to make sure everything works, the both the server's firewall and your router's firewall must be configured to allow access to the ports we need. Port 8093 will be the Web GUI for administration, and port 53 since that is the standard port for DNS servers.
 

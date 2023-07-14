@@ -3,6 +3,12 @@
 
 This walks you through setup of this homelab docker-compose template into a working production environment.
 
+** Docker Networking
+By default, only docker-compose containers within the same file are able to talk to each other. This can be bypassed by creating an "external" network. In this sample, the external network is called "proxy-tier" and must be created manually with the command:
+#+BEGIN_SRC sh :noexec
+sudo docker network create proxy-tier
+#+END_SRC
+
 ** Domain Name
 In order for this to work, you're going to need a domain name. Do a search for the best domain name registrars and pick one. Then search up domain names you would like until you find something available. Then, as long as you aren't trying to get something fancy like .gg or .ai, the yearly payments shouldn't be too bad.
 

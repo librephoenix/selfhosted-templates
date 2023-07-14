@@ -1,6 +1,12 @@
 #+title: Wireguard Setup
 #+author: Emmet
 
+** Docker Networking
+By default, only docker-compose containers within the same file are able to talk to each other. This can be bypassed by creating an "external" network. In this sample, the external network is called "proxy-tier" and must be created manually with the command:
+#+BEGIN_SRC sh :noexec
+sudo docker network create proxy-tier
+#+END_SRC
+
 ** Firewall Rules
 In order to make sure everything works, the both the server's firewall and your router's firewall must be configured to allow access to the ports we need. Port 52180 is the only port needed for Wireguard.
 
