@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  vanilla-minecraft-server:
+    image: itzg/minecraft-server:java8-multiarch
+    container_name: vanilla-minecraft-server
+    stdin_open: true
+    tty: true
+    environment:
+      - MEMORY=2G # set this based on number of players you expect
+      - EULA=TRUE
+      - VERSION=1.20 # it's a good idea to set this statically, and only update minor versions
+      # updating to a new major version on the same world will make borders between new and old chunks clash
+      - TYPE=VANILLA
+    networks:
+      - proxy-tier
+    volumes:
+      - ./data:/data
+    ports:
+      - 25565:25565/udp
+      - 25565:25565/tcp
+    restart: unless-stopped
+
+networks:
+  proxy-tier:
+    external: true

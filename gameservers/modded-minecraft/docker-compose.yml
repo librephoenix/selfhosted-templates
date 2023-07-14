@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  modded-minecraft-server:
+    image: itzg/minecraft-server:latest
+    container_name: modded-minecraft-server
+    stdin_open: true
+    tty: true
+    environment:
+      - MEMORY=4G
+      - EULA=TRUE
+      - VERSION=1.20 # it's a good idea to set this statically, and only update minor versions
+      # updating to a new major version on the same world will make borders between new and old chunks clash
+      - TYPE=FABRIC
+      # - TYPE=FORGE
+      # before you start the container, make sure your mods are in the data/mods directory!
+      # some mods, especially biome mods, won't work right unless they are there when the world is generated
+    networks:
+      - proxy-tier
+    volumes:
+      - ./data:/data
+    ports:
+      - 27565:25565/udp
+      - 27565:25565/tcp
+    restart: unless-stopped
+
+networks:
+  proxy-tier:
+    external: true
