@@ -1,8 +1,14 @@
 #+title: Gameservers Docker Compose
 #+author: Emmet
 
+** Service Overview
+Within this directory, there are several templates for gameservers:
+- [[./minecraft][Vanilla Minecraft]]
+- [[./modded-minecraft][Modded Minecraft]]
+- [[./terraria][Terraria]]
+
 ** Setup
-For details on how to turn this into working game servers, see [[./setup.org][setup.org]].
+For details on how to turn this into working game servers, see setup.org in the relevant subdirectory.
 
 ** Maintenance
-For more details on maintaining these game servers, see [[./maintenance.org][maintenance.org]].
+For more details on maintaining these game servers, see maintenance.org in the relevant subdirectory.
